@@ -12,7 +12,7 @@ module outqueue
     input                                               resetn,
 
     /* fifo plane */
-    input   [PKT_TUPLE_WIDTH+15:0]                      fifo_data_in,
+    input   [PKT_TUPLE_WIDTH+PKT_LEN_WIDTH-1:0]         fifo_data_in,
     // input                                               fifo_rd_en,
     input                                               fifo_wr_en,
     output                                              fifo_nearly_full,
@@ -26,7 +26,7 @@ module outqueue
 
 );
 
-    wire [15:0]                                         fifo_out_pkt_len;
+    wire [PKT_LEN_WIDTH-1:0]                            fifo_out_pkt_len;
     wire [PKT_TUPLE_WIDTH-1:0]                          fifo_out_pkt_fivetuple;
     wire                                                fifo_rd_en;
 

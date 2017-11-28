@@ -13,13 +13,13 @@ module inqueue
     input                                               resetn,
 
     /* pkt plane */
-    input  [ACTION_TUPLE_WIDTH-1:0]                     fivetuple_data_in,
-    input  [PKT_LEN_WIDTH]                              pkt_len_in,
+    input  [PKT_TUPLE_WIDTH-1:0]                        fivetuple_data_in,
+    input  [PKT_LEN_WIDTH-1:0]                          pkt_len_in,
     input                                               tuple_in_vld,
     output                                              tuple_in_ready,
 
     /* fifo plane */
-    output  [PKT_TUPLE_WIDTH+15:0]                      fifo_data_out,
+    output  [PKT_TUPLE_WIDTH+PKT_LEN_WIDTH-1:0]         fifo_data_out,
     input                                               fifo_rd_en,
     output                                              fifo_nearly_full,
     output                                              fifo_empty
@@ -36,7 +36,7 @@ module inqueue
     wire [15:0]                                         fifo_out_pkt_len;
     wire [PKT_TUPLE_WIDTH-1:0]                          fifo_out_pkt_fivetuple;
 
-    assign tuple_in_READY        = ~fifo_nearly_full;
+    assign tuple_in_ready        = ~fifo_nearly_full;
     assign fifo_data_out         = {fifo_out_pkt_fivetuple,fifo_out_pkt_len};
     assign fifo_in_pkt_len       = fifo_in_pkt_len_next;
     assign fifo_in_pkt_fivetuple = fifo_in_pkt_fivetuple_next;
@@ -49,7 +49,7 @@ module inqueue
             wr_en <=0;
         end
         else begin
-            if(tuple_in_transtuple_VALID) begin
+            if(tuple_in_vld) begin
                 fifo_in_pkt_fivetuple_next <= fivetuple_data_in;
                 fifo_in_pkt_len_next <= pkt_len_in;
                 wr_en <=1;

@@ -136,11 +136,8 @@ module dflow_generator
 
 	fifo_to_mem #(
 		.FIFO_DATA_WIDTH      		(QDR_DATA_WIDTH*QDR_BURST_LENGTH),
-		.NUM_QUEUES                 (C_NUM_QUEUES),
 		.MEM_ADDR_WIDTH       		(QDR_ADDR_WIDTH),
-		.MEM_DATA_WIDTH       		(QDR_DATA_WIDTH*QDR_BURST_LENGTH),
-		.MEM_BW_WIDTH         		(QDR_BW_WIDTH),
-		.MEM_BURST_LENGTH			(QDR_BURST_LENGTH)    
+		.MEM_DATA_WIDTH       		(QDR_DATA_WIDTH*QDR_BURST_LENGTH)
 	)
 	  fifo_to_mem_inst
 	(
@@ -154,13 +151,14 @@ module dflow_generator
 	    .app_wr_cmd                     	(user_app_wr_cmd),
 		.app_wr_data                    	(user_app_wr_data),
 		.app_wr_addr                    	(user_app_wr_addr),
-		.mem_addr_high						(mem_addr_high),
+		.cal_done							(init_calib_complete)，
          //****************************wrl  rewrite******************** 
 		.start_store                        (start_store),
-                          		
 	    .sw_rst								(sync_sw_rst),	
          //********************************************************************		
-		.cal_done							(init_calib_complete)
+	    .dflow_addr_low                     (),
+	    .dflow_addr_high                    (),
+	    .dflow_mem_high                     ()
 	);
 
 	mem_to_fifo #(
@@ -205,7 +203,6 @@ module dflow_generator
     )
     outqueue_inst
     (
-
         /* system clock */
         .clk                     (),
         .resetn                  (),
