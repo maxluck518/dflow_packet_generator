@@ -29,10 +29,7 @@ graph LR
 	outqueue--pkt_info-->out
 	reg--start_store-->fifo_to_mem
 	reg--start_replay-->mem_to_fifo
-	reg---|axi|Zynq
-
-
-	
+	reg---|axi|Zynq	
 ```
 
 To be continued!
