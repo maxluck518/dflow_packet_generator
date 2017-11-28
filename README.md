@@ -19,7 +19,7 @@ packet generator for dflow experiment
 
 ## DataFlow
 
-```mermaid
+```
 graph LR
 	IN--pkt_info-->inqueue
 	inqueue-->fifo_to_mem
