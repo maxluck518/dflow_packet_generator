@@ -70,23 +70,6 @@ module dflow_generator
     /* upstream plane */
     assign tuple_in_READY        = ~inqueue_fifo_nearly_full;
 
-    /* inqueue */
-    fallthrough_small_fifo_v2 #
-    (.WIDTH(PKT_TUPLE_WIDTH+16),
-     .MAX_DEPTH_BITS(10))
-      inqueue_fifo
-        (.din           ({inqueue_fifo_in_pkt_fivetuple,inqueue_fifo_in_pkt_len}),  // Data in
-         .wr_en         (inqueue_fifo_wr_en),             // Write enable
-         .rd_en         (inqueue_fifo_rd_en),    // Read the next word
-         .dout          ({inqueue_fifo_out_pkt_fivetuple,inqueue_fifo_out_pkt_len}),
-         .full          (),
-         .nearly_full   (inqueue_fifo_nearly_full),
-         .prog_full     (),
-         .empty         (inqueue_fifo_empty),
-         .reset         (~resetn),
-         .clk           (clk)
-         );
-
     localparam  NUM_RW_REGS = 4;
 
 	wire [NUM_RW_REGS*C_S_AXI_DATA_WIDTH-1:0]   	rw_regs;
@@ -100,6 +83,7 @@ module dflow_generator
     assign  start_replay     = rw_regs[(C_S_AXI_DATA_WIDTH*2)+1-1:(C_S_AXI_DATA_WIDTH*2)];
     assign  compelete_replay = rw_regs[(C_S_AXI_DATA_WIDTH*3)+1-1:(C_S_AXI_DATA_WIDTH*3)];
 
+
 	//--------------------------------------------------
     //
     // --- cutter disabled
@@ -110,18 +94,44 @@ module dflow_generator
 	)
 	pipeline_regs_inst
 	(
-	  .reg_req_in            (reg_req),
-	  .reg_rd_wr_L_in        (reg_rd_wr_L),
-	  .reg_addr_in           (reg_addr),
-	  .reg_wr_data           (reg_wr_data),
-	  
-	  .reg_ack_out           (reg_ack),
-	  .reg_rd_data           (reg_rd_data),
-	  
-	  .rw_regs               (rw_regs),
-		  
-	  .clk                   (s_axi_aclk), 
-      .reset                 (~axi_aresetn)
+	    .reg_req_in            (reg_req),
+	    .reg_rd_wr_L_in        (reg_rd_wr_L),
+	    .reg_addr_in           (reg_addr),
+	    .reg_wr_data           (reg_wr_data),
+	    
+	    .reg_ack_out           (reg_ack),
+	    .reg_rd_data           (reg_rd_data),
+	    
+	    .rw_regs               (rw_regs),
+	        
+	    .clk                   (s_axi_aclk), 
+        .reset                 (~axi_aresetn)
+    );
+
+    inqueue # (
+        .ACTION_TUPLE_WIDTH(128),
+        .PKT_TUPLE_WIDTH(104),
+        .PKT_LEN_WIDTH(16)           
+    )
+    inqueue_inst
+    (
+
+        /* system clock */
+        .clk                     (),
+        .resetn                  (),
+                                
+        /* pkt plane */          
+        .fivetuple_data_in       (fivetuple_data_in),
+        .pkt_len_in              (pkt_len_in),
+        .tuple_in_vld            (tuple_in_vld),
+        .tuple_in_ready          (tuple_in_ready),
+                                 
+        /* fifo plane */         
+        .fifo_data_out           (fifo_wr_data),
+        .fifo_rd_en              (fifo_wr_rd_en),
+        // .fifo_wr_en              (),
+        // .fifo_nearly_full        (),
+        .fifo_empty              (fifo_wr_empty)
     );
 
 	fifo_to_mem #(
@@ -187,5 +197,31 @@ module dflow_generator
 		
 		.cal_done						(init_calib_complete)
 	);
+
+    outqueue # (
+        .ACTION_TUPLE_WIDTH(128),
+        .PKT_TUPLE_WIDTH(104),
+        .PKT_LEN_WIDTH(16)           
+    )
+    outqueue_inst
+    (
+
+        /* system clock */
+        .clk                     (),
+        .resetn                  (),
+                             
+        /* fifo plane */         
+        .fifo_data_out           (fifo_rd_data),
+        // .fifo_rd_en              (),
+        .fifo_wr_en              (fifo_rd_wr_en),
+        .fifo_nearly_full        (fifo_rd_full),
+        // .fifo_empty              (),
+
+        /* pkt plane */          
+        .fivetuple_data_out      (fivetuple_data_out),
+        .pkt_len_out             (pkt_len_out),
+        .tuple_out_vld           (tuple_out_vld),
+        .tuple_out_ready         (tuple_out_ready)
+    );
 
     endmodule

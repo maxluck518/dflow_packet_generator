@@ -3,7 +3,8 @@
 module inqueue
 #(
   parameter ACTION_TUPLE_WIDTH     = 128,
-  parameter PKT_TUPLE_WIDTH        = 104
+  parameter PKT_TUPLE_WIDTH        = 104,
+  parameter PKT_LEN_WIDTH          = 16
 
 )
 (
@@ -12,22 +13,21 @@ module inqueue
     input                                               resetn,
 
     /* pkt plane */
-    input   [ACTION_TUPLE_WIDTH-1:0]                    tuple_in_transtuple_DATA,
-    input                                               tuple_in_transtuple_VALID,
-    input   [PKT_TUPLE_WIDTH-1:0]                       tuple_in_fivetuple_DATA,
-    input                                               tuple_in_fivetuple_VALID,
-    output                                              tuple_in_READY,
+    input  [ACTION_TUPLE_WIDTH-1:0]                     fivetuple_data_in,
+    input  [PKT_LEN_WIDTH]                              pkt_len_in,
+    input                                               tuple_in_vld,
+    output                                              tuple_in_ready,
 
     /* fifo plane */
     output  [PKT_TUPLE_WIDTH+15:0]                      fifo_data_out,
     input                                               fifo_rd_en,
-    input                                               fifo_wr_en,
     output                                              fifo_nearly_full,
     output                                              fifo_empty
 
 );
 
     reg                                                 wr_en;
+    wire                                                fifo_wr_en;
     wire [15:0]                                         fifo_in_pkt_len;
     wire [PKT_TUPLE_WIDTH-1:0]                          fifo_in_pkt_fivetuple;
     reg  [15:0]                                         fifo_in_pkt_len_next;
@@ -50,8 +50,8 @@ module inqueue
         end
         else begin
             if(tuple_in_transtuple_VALID) begin
-                fifo_in_pkt_fivetuple_next <= tuple_in_fivetuple_DATA;
-                fifo_in_pkt_len_next <= tuple_in_transtuple_DATA[15:0];
+                fifo_in_pkt_fivetuple_next <= fivetuple_data_in;
+                fifo_in_pkt_len_next <= pkt_len_in;
                 wr_en <=1;
             end
             else begin
