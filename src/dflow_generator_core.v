@@ -88,23 +88,23 @@ module dflow_generator
     //
     // --- cutter disabled
     //--------------------------------------------------  
-	 genevr_pipeline_regs #  
-	(
-		.NUM_REG_USED(4)
-	)
-	pipeline_regs_inst
-	(
-	    .reg_req_in            (reg_req),
-	    .reg_rd_wr_L_in        (reg_rd_wr_L),
-	    .reg_addr_in           (reg_addr),
-	    .reg_wr_data           (reg_wr_data),
-	    
-	    .reg_ack_out           (reg_ack),
-	    .reg_rd_data           (reg_rd_data),
-	    
-	    .rw_regs               (rw_regs),
-	        
-	    .clk                   (s_axi_aclk), 
+     genevr_pipeline_regs #  
+    (
+        .NUM_REG_USED(4)
+    )
+    pipeline_regs_inst
+    (
+        .reg_req_in            (reg_req),
+        .reg_rd_wr_L_in        (reg_rd_wr_L),
+        .reg_addr_in           (reg_addr),
+        .reg_wr_data           (reg_wr_data),
+        
+        .reg_ack_out           (reg_ack),
+        .reg_rd_data           (reg_rd_data),
+        
+        .rw_regs               (rw_regs),
+            
+        .clk                   (s_axi_aclk), 
         .reset                 (~axi_aresetn)
     );
 
@@ -117,8 +117,8 @@ module dflow_generator
     (
 
         /* system clock */
-        .clk                     (),
-        .resetn                  (),
+        .clk                     (qdr_clk),
+        .resetn                  (~axi_aresetn),
                                 
         /* pkt plane */          
         .fivetuple_data_in       (fivetuple_data_in),
@@ -133,6 +133,8 @@ module dflow_generator
         // .fifo_nearly_full        (),
         .fifo_empty              (fifo_wr_empty)
     );
+
+    wire        dflow_mem_high_store;
 
 	fifo_to_mem #(
 		.FIFO_DATA_WIDTH      		(QDR_DATA_WIDTH*QDR_BURST_LENGTH),
@@ -156,9 +158,9 @@ module dflow_generator
 		.start_store                        (start_store),
 	    .sw_rst								(sync_sw_rst),	
          //********************************************************************		
-	    .dflow_addr_low                     (),
-	    .dflow_addr_high                    (),
-	    .dflow_mem_high                     ()
+	    .dflow_addr_low                     (0),
+	    .dflow_addr_high                    (19'h7ffff),
+	    .dflow_mem_high                     (dflow_mem_high_store)
 	);
 
 	mem_to_fifo #(
@@ -168,8 +170,7 @@ module dflow_generator
 		.MEM_DATA_WIDTH       (QDR_DATA_WIDTH*QDR_BURST_LENGTH),
 		.MEM_BW_WIDTH         (QDR_BW_WIDTH),
 		.MEM_BURST_LENGTH	  (QDR_BURST_LENGTH),
-		.REPLAY_COUNT_WIDTH   (REPLAY_COUNT_WIDTH),
-		.SIM_ONLY			  (SIM_ONLY)
+		.REPLAY_COUNT_WIDTH   (REPLAY_COUNT_WIDTH)
 	)
 		mem_to_fifo_inst
 	(
@@ -193,7 +194,9 @@ module dflow_generator
 	    .sw_rst							(sync_sw_rst),
 		//**********************************************************
 		
-		.cal_done						(init_calib_complete)
+		.cal_done						(init_calib_complete),
+	    .dflow_mem_low                  (0),
+	    .dflow_mem_high                 (dflow_mem_high_store)
 	);
 
     outqueue # (
@@ -204,11 +207,11 @@ module dflow_generator
     outqueue_inst
     (
         /* system clock */
-        .clk                     (),
-        .resetn                  (),
+        .clk                     (qdr_clk), 
+        .resetn                  (~axi_aresetn), 
                              
         /* fifo plane */         
-        .fifo_data_out           (fifo_rd_data),
+        .fifo_data_in            (fifo_rd_data),
         // .fifo_rd_en              (),
         .fifo_wr_en              (fifo_rd_wr_en),
         .fifo_nearly_full        (fifo_rd_full),
