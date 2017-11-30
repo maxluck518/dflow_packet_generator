@@ -19,7 +19,6 @@ packet generator for dflow experiment
 │   ├── mem_to_fifo.v
 │   ├── outqueue.v
 │   ├── small_fifo_v3.v
-│   ├── WDRR_regs.v
 │   └── xil_async_fifo.v
 └── testbench
     ├── dflow_generator_test.v
