@@ -21,7 +21,9 @@
 `define REPLAY_UENGINE_REG_ADDR_WIDTH       6
 module genevr_pipeline_regs
 	#(
-	  parameter NUM_REG_USED = 21,
+	  parameter AXI_DATA_WIDTH = 32,
+	  parameter AXI_ADDR_WIDTH = 23,
+	  parameter NUM_REG_USED = 4,
 	  parameter REG_ADDR_WIDTH = `REPLAY_UENGINE_REG_ADDR_WIDTH,
 	  parameter REPLAY_UENGINE_BLOCK_ADDR = 17'h10017
 	  
@@ -29,26 +31,26 @@ module genevr_pipeline_regs
 	(
 	  input                               	 reg_req_in,
 	  input                               	 reg_rd_wr_L_in,
-	  input [`UDP_REG_ADDR_WIDTH-1:0]     	 reg_addr_in,
-	  input [`CPCI_NF2_DATA_WIDTH-1:0]    	 reg_wr_data,
+	  input [AXI_ADDR_WIDTH -1:0]     	     reg_addr_in,
+	  input [AXI_DATA_WIDTH-1:0]    	     reg_wr_data,
 	  
 	  output reg                             reg_ack_out,
-	  output reg [`CPCI_NF2_DATA_WIDTH-1:0]  reg_rd_data,
+	  output reg [AXI_DATA_WIDTH-1:0]        reg_rd_data,
 	  
-	  output [`CPCI_NF2_DATA_WIDTH *NUM_REG_USED -1:0] rw_regs,                  
+	  output [AXI_DATA_WIDTH *NUM_REG_USED -1:0] rw_regs,                  
 	  
 	  input                            clk,
 	  input                            reset
 	);
 	
-	reg  [`CPCI_NF2_DATA_WIDTH-1:0]               reg_file[NUM_REG_USED-1:0];
+	reg  [AXI_DATA_WIDTH-1:0]                     reg_file[NUM_REG_USED-1:0];
 	wire [`REPLAY_UENGINE_BLOCK_ADDR_WIDTH-1:0]   tag_addr;
 	wire[REG_ADDR_WIDTH-1:0]                      reg_addr;
 	wire                                          addr_good;
 	wire                                          tag_hit;
 
 	//tag_addr is the block address of CUTTER module,and reg_addr is the address of register that sw want to access
-	assign tag_addr = reg_addr_in[`UDP_REG_ADDR_WIDTH-1:`REPLAY_UENGINE_REG_ADDR_WIDTH];
+	assign tag_addr = reg_addr_in[AXI_ADDR_WIDTH-1:`REPLAY_UENGINE_REG_ADDR_WIDTH];
 	assign reg_addr = reg_addr_in[`REPLAY_UENGINE_REG_ADDR_WIDTH-1:0];
 	
 	assign tag_hit = tag_addr == REPLAY_UENGINE_BLOCK_ADDR;
@@ -58,7 +60,7 @@ module genevr_pipeline_regs
 	
 	generate
 		for(i=0; i<NUM_REG_USED; i=i+1) begin : rwregs
-			assign rw_regs[`CPCI_NF2_DATA_WIDTH*(i+1)-1 : `CPCI_NF2_DATA_WIDTH*i] = reg_file[i];
+			assign rw_regs[AXI_DATA_WIDTH*(i+1)-1 : AXI_DATA_WIDTH*i] = reg_file[i];
 		end
 	endgenerate
 	

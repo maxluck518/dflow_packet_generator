@@ -189,7 +189,7 @@ module dflow_generator
 
     assign tuple_in_ready = ~sync_in_fifo_prog_full;
     assign sync_in_fifo_wr_en = tuple_in_ready & tuple_in_vld;
-    assign sync_in_fifo_rd_en = sync_tuple_in_ready & ~sync_fifo_empty;
+    assign sync_in_fifo_rd_en = sync_tuple_in_ready & ~sync_in_fifo_empty;
 
     always @(posedge qdr_clk)
         if (~resetn) begin
@@ -286,7 +286,7 @@ module dflow_generator
         .DOUT_WIDTH(PKT_LEN_WIDTH+PKT_TUPLE_WIDTH), 
         .DIN_WIDTH(PKT_LEN_WIDTH+PKT_TUPLE_WIDTH)
     )
-    async_fifo_input
+    async_fifo_output
       ( 
         .din          ({sync_fivetuple_data_out,sync_pkt_len_out}),
         .wr_en        (sync_out_fifo_wr_en),
