@@ -203,7 +203,7 @@ module inqueue_test
         end
     end
 
-    dflow_generator # (
+    dflow_generator_core # (
     )
     dflow_generator_inst 
     (

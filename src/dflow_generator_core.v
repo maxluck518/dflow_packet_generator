@@ -6,36 +6,15 @@
   *
   */
 
-module dflow_generator
+module dflow_generator_core
 #(
-
-  parameter ACTION_TUPLE_WIDTH     = 128,
-  parameter PKT_TUPLE_WIDTH        = 104,
-  parameter PKT_LEN_WIDTH          = 16,
-  parameter MEM_SIZE               = 16,
-
-  parameter C_S_AXI_DATA_WIDTH   = 32,
-  parameter C_S_AXI_ADDR_WIDTH   = 32,
-  parameter C_BASEADDR           = 32'hFFFFFFFF,
-  parameter C_HIGHADDR           = 32'h00000000,
-  parameter C_USE_WSTRB          = 0,
-  parameter C_DPHASE_TIMEOUT     = 0,
-  parameter C_S_AXI_ACLK_FREQ_HZ = 100,
-  parameter C_M_AXIS_DATA_WIDTH  = 256,
-  parameter C_S_AXIS_DATA_WIDTH  = 256,
-  parameter C_M_AXIS_TUSER_WIDTH = 128,
-  parameter C_S_AXIS_TUSER_WIDTH = 128,
-  parameter C_NUM_QUEUES         = 4,
-  parameter DST_PORT_POS         = 0,
-  parameter QDR_NUM_CHIPS        = 2,
+  parameter ACTION_TUPLE_WIDTH   = 128,
+  parameter PKT_TUPLE_WIDTH      = 104,
+  parameter PKT_LEN_WIDTH        = 16,
+  parameter MEM_SIZE             = 16,
   parameter QDR_DATA_WIDTH       = 36,
   parameter QDR_ADDR_WIDTH       = 19,
-  parameter QDR_BW_WIDTH         = 4,
-  parameter QDR_CQ_WIDTH         = 1,
-  parameter QDR_CLK_WIDTH        = 1,
   parameter QDR_BURST_LENGTH     = 4,
-  parameter QDR_CLK_PERIOD       = 4000,
-  parameter SIM_ONLY             = 0,
   parameter REPLAY_COUNT_WIDTH   = 32,
   parameter REPLAY_COUNT         = 2
 )
