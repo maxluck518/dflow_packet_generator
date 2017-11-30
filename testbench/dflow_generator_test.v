@@ -46,12 +46,23 @@ module inqueue_test
     wire                                               tuple_in_vld;
     wire                                               tuple_in_ready; 
 
-    /* fifo plane */
-    wire  [PKT_TUPLE_WIDTH+PKT_LEN_WIDTH-1:0]          fifo_data_out;
-    wire                                               fifo_rd_en;
-    // wire                                               fifo_wr_en;
-    wire                                               fifo_nearly_full;
-    wire                                               fifo_empty;
+    wire  [PKT_TUPLE_WIDTH-1:0]                        fivetuple_data_out;
+    wire  [PKT_LEN_WIDTH-1:0]                          pkt_len_out;
+    wire                                               tuple_out_vld;
+    // wire                                               tuple_out_ready; 
+
+    wire                                                init_calib_complete;	  
+    wire            							        user_app_wr_cmd;
+    wire [18:0]     							        user_app_wr_addr;
+    wire [143:0] 								        user_app_wr_data;
+	wire                            	                user_app_rd_cmd;
+	wire  [QDR_ADDR_WIDTH-1:0]                          user_app_rd_addr;
+	wire   [QDR_DATA_WIDTH*QDR_BURST_LENGTH-1:0]        user_app_rd_data;
+    wire										        user_app_rd_valid;
+
+    assign  user_app_rd_data  = user_app_rd_data_r;
+    assign  user_app_rd_valid = user_app_rd_valid_r;
+
     // assign  fifo_rd_en = 0;
 
     // -- Local Functions
@@ -84,6 +95,9 @@ module inqueue_test
     assign  tuple_in_vld      = tuple_in_vld_next;
     assign  cnt               = cnt_next;
 
+    always #2.5  clk = ~clk;
+    always #2.5  qdr_clk = ~qdr_clk;
+
     integer i;
     initial begin
         clk   = 1'b0;
@@ -104,37 +118,7 @@ module inqueue_test
         start_store_flag = 1'b1;
     end
 
-    always #2.5  clk = ~clk;
-    always #2.5  qdr_clk = ~qdr_clk;
-
-    inqueue # (
-        .ACTION_TUPLE_WIDTH(128),
-        .PKT_TUPLE_WIDTH(104),
-        .PKT_LEN_WIDTH(16)           
-    )
-    inqueue_inst
-    (
-
-        /* system clock */
-        .clk                     (clk),
-        .resetn                  (resetn),
-                                
-        /* pkt plane */          
-        .fivetuple_data_in       (fivetuple_data_in),
-        .pkt_len_in              (pkt_len_in),
-        .tuple_in_vld            (tuple_in_vld),
-        .tuple_in_ready          (tuple_in_ready),
-                                 
-        /* fifo plane */         
-        .fifo_data_out           (fifo_data_out),
-        .fifo_rd_en              (fifo_rd_en),
-        // .fifo_wr_en              (),
-        // .fifo_nearly_full        (),
-        .fifo_empty              (fifo_empty)
-    );
-
     /* input channel */
-
     reg                     start_store_flag;
     reg                     compelete_store_flag;
     reg                     start_store;
@@ -160,41 +144,9 @@ module inqueue_test
         end
     end
 
-	fifo_to_mem #(
-		.FIFO_DATA_WIDTH      		(QDR_DATA_WIDTH*QDR_BURST_LENGTH),
-		.MEM_ADDR_WIDTH       		(QDR_ADDR_WIDTH),
-		.MEM_DATA_WIDTH       		(QDR_DATA_WIDTH*QDR_BURST_LENGTH)
-	)
-	  fifo_to_mem_inst
-	(
-	    .clk								(clk),
-		.rst								(~resetn),
-                          	
-	    .fifo_rd_en							(fifo_rd_en),
-	    .fifo_data							(fifo_data_out),
-	    .fifo_empty							(fifo_empty),
-		                      		
-		// .app_wr_cmd                     	(user_app_wr_cmd),
-		// .app_wr_data                    	(user_app_wr_data),
-		// .app_wr_addr                    	(user_app_wr_addr),
-		.cal_done							(1),
-         //****************************wrl  rewrite******************** 
-		.start_store                        (start_store),
-	    .sw_rst								(0),	
-         //********************************************************************		
-	    .dflow_addr_low                     (0),
-	    .dflow_addr_high                    (16'h0fff)
-		// .dflow_mem_high                     (dflow_mem_high_store)
-	);
-
     /* output channel  */
-	wire                            	            user_app_rd_cmd;
-	wire  [QDR_ADDR_WIDTH-1:0]                      user_app_rd_addr;
-	reg   [QDR_DATA_WIDTH*QDR_BURST_LENGTH-1:0]     user_app_rd_data;
-    reg										        user_app_rd_valid;
-    wire                                            fifo_rd_wr_en;
-    wire  [PKT_TUPLE_WIDTH+PKT_LEN_WIDTH-1:0]       fifo_rd_data;
-    wire                                            fifo_rd_nearly_full;
+	reg   [QDR_DATA_WIDTH*QDR_BURST_LENGTH-1:0]     user_app_rd_data_r;
+    reg										        user_app_rd_valid_r;
     reg                                             start_replay;
     wire                                            compelete_replay;
 
@@ -213,89 +165,29 @@ module inqueue_test
     end
     always  @(posedge clk) begin
         if(~resetn) begin
-            user_app_rd_data  <= 0;
-            user_app_rd_valid <= 0;
+            user_app_rd_data_r  <= 0;
+            user_app_rd_valid_r <= 0;
             replay_mem_cnt    <= 0;
         end
         else begin
             if(start_replay) begin
                 if(compelete_replay) begin
-                    user_app_rd_data  <= 0;
-                    user_app_rd_valid <= 0;
+                    user_app_rd_data_r  <= 0;
+                    user_app_rd_valid_r <= 0;
                 end
                 else begin
                     replay_mem_id     <= replay_mem_cnt % 16;
-                    user_app_rd_data  <= {fivetuple_mem[replay_mem_id],pkt_len_mem[replay_mem_id]};
+                    user_app_rd_data_r  <= {fivetuple_mem[replay_mem_id],pkt_len_mem[replay_mem_id]};
                     replay_mem_cnt    <= replay_mem_cnt + 1;
-                    user_app_rd_valid <= 1;
+                    user_app_rd_valid_r <= 1;
                 end
             end
             else begin
-                user_app_rd_data  <= 0;
-                user_app_rd_valid <= 0;
+                user_app_rd_data_r  <= 0;
+                user_app_rd_valid_r <= 0;
             end
         end
     end
-
-	mem_to_fifo #(
-		.NUM_QUEUES     	  (C_NUM_QUEUES),
-		.FIFO_DATA_WIDTH      (PKT_LEN_WIDTH+PKT_TUPLE_WIDTH),
-		.MEM_ADDR_WIDTH       (QDR_ADDR_WIDTH),
-		.MEM_DATA_WIDTH       (QDR_DATA_WIDTH*QDR_BURST_LENGTH),
-		.MEM_BW_WIDTH         (QDR_BW_WIDTH),
-		.MEM_BURST_LENGTH	  (QDR_BURST_LENGTH),
-		.REPLAY_COUNT_WIDTH   (REPLAY_COUNT_WIDTH)
-	)
-		mem_to_fifo_inst
-	(
-		.clk							(clk),
-		.rst							(~resetn),
-	                      	
-		.app_rd_cmd                     (user_app_rd_cmd),
-		.app_rd_addr                    (user_app_rd_addr),
-		.app_rd_data                    (user_app_rd_data),
-		.app_rd_valid                   (user_app_rd_valid),
-		
-        .fifo_wr_en					    (fifo_rd_wr_en),
-        .fifo_data					    (fifo_rd_data),
-        .fifo_nearly_full               (fifo_rd_nearly_full),
-		
-		//**************************wrl  rewrite********************
-		.start_replay                   (start_replay),
-		.compelete_replay               (compelete_replay),
-			                  	
-	    .sw_rst							(0),
-		//**********************************************************
-		
-		.cal_done						(1),
-	    .dflow_mem_low                  (0),
-	    .dflow_mem_high                 (16'h0fff)
-	);
-
-    outqueue # (
-        .ACTION_TUPLE_WIDTH(128),
-        .PKT_TUPLE_WIDTH(104),
-        .PKT_LEN_WIDTH(16)           
-    )
-    outqueue_inst
-    (
-        /* system clock */
-        .clk                     (clk), 
-        .resetn                  (resetn), 
-                             
-        /* fifo plane */         
-        .fifo_data_in            (fifo_rd_data),
-        // .fifo_rd_en              (),
-        .fifo_wr_en              (fifo_rd_wr_en),
-        .fifo_nearly_full        (fifo_rd_nearly_full),
-        // .fifo_empty              (),
-
-        /* pkt plane */          
-        // .fivetuple_data_out      (fivetuple_data_out),
-        // .pkt_len_out             (pkt_len_out),
-        // .tuple_out_vld           (tuple_out_vld),
-        .tuple_out_ready         (1)
-    );
 
     /* external pkt core */
     always  @(posedge clk) begin
@@ -310,5 +202,47 @@ module inqueue_test
             end
         end
     end
+
+    dflow_generator # (
+    )
+    dflow_generator_inst 
+    (
+        // system signals
+        .qdr_clk                                (qdr_clk),
+        .resetn                                 (resetn),
+
+        // controll signals
+	    .sw_rst                                 (sw_rst),
+        .start_replay                           (start_replay),
+        .compelete_replay                       (compelete_replay),
+        .start_store                            (start_store),
+
+        // addr signals
+        .mem_addr_low                           (0),
+        .mem_addr_high                          (16'h0fff),
+                                                
+        // QDR Memory Interface                 
+        .init_calib_complete	                (1),
+        .user_app_wr_cmd                        (user_app_wr_cmd),
+        .user_app_wr_addr                       (user_app_wr_addr),
+        .user_app_wr_data                       (user_app_wr_data),
+        .user_app_rd_cmd                        (user_app_rd_cmd),
+        .user_app_rd_addr                       (user_app_rd_addr),
+        .user_app_rd_valid                      (user_app_rd_valid),
+        .user_app_rd_data                       (user_app_rd_data),
+                                                
+        // dflow info input Interface           
+        .fivetuple_data_in                      (fivetuple_data_in),
+        .pkt_len_in                             (pkt_len_in),
+        .tuple_in_vld                           (tuple_in_vld),
+        .tuple_in_ready                         (tuple_in_ready),
+                                                
+        // dflow info output Interface          
+        .fivetuple_data_out                     (fivetuple_data_out),
+        .pkt_len_out                            (pkt_len_out),
+        .tuple_out_vld                          (tuple_out_vld),
+        .tuple_out_ready                        (1)
+    );
+
 
     endmodule

@@ -44,25 +44,28 @@ module fifo_to_mem
 	reg [MEM_ADDR_WIDTH-1:0] 			    mem_ad_wr_r;
 	reg                                     mem_wr_cmd; 
 
-	assign  fifo_rd_en     = !fifo_empty && cal_done;
-    assign  dflow_mem_high = mem_addr_wr;
+	assign  fifo_rd_en     = ~fifo_empty & cal_done & start_store;
+    assign  dflow_mem_high = mem_ad_wr_r;
 
     always @ (posedge clk) begin
       if(rst || sw_rst) begin
       		app_wr_data  <= {MEM_DATA_WIDTH{1'b0}};
       		app_wr_addr  <= MEM_ADDR_LOW;
-			mem_addr_wr  <= dflow_addr_low;
+			mem_ad_wr_r  <= dflow_addr_low;
       end
       else if(start_store) begin
 		    app_wr_data <= fifo_data;
-		    app_wr_cmd  <= fifo_rd_en;
-            app_wr_addr <= mem_addr_wr;
-            if (!fifo_empty && cal_done) begin
-                if (mem_addr_wr == (dflow_addr_high-1)) 
-                    mem_wr_cmd  <= 0;
+            app_wr_addr <= mem_ad_wr_r;
+            if (~fifo_empty & cal_done) begin
+                if (mem_ad_wr_r == (dflow_addr_high-1)) 
+                    app_wr_cmd  <= 0;
                 else	begin
-                    mem_addr_wr <= mem_addr_wr + 1;
+                    mem_ad_wr_r <= mem_ad_wr_r + 1;
+                    app_wr_cmd  <= 1;
                 end
+            end
+            else begin
+                app_wr_cmd  <= 0;
             end
         end
         else begin

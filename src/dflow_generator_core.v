@@ -8,6 +8,12 @@
 
 module dflow_generator
 #(
+
+  parameter ACTION_TUPLE_WIDTH     = 128,
+  parameter PKT_TUPLE_WIDTH        = 104,
+  parameter PKT_LEN_WIDTH          = 16,
+  parameter MEM_SIZE               = 16,
+
   parameter C_S_AXI_DATA_WIDTH   = 32,
   parameter C_S_AXI_ADDR_WIDTH   = 32,
   parameter C_BASEADDR           = 32'hFFFFFFFF,
@@ -29,84 +35,68 @@ module dflow_generator
   parameter QDR_CLK_WIDTH        = 1,
   parameter QDR_BURST_LENGTH     = 4,
   parameter QDR_CLK_PERIOD       = 4000,
-  parameter REPLAY_COUNT_WIDTH   = 32,
   parameter SIM_ONLY             = 0,
-  parameter PKT_TUPLE_WIDTH      = 104
+  parameter REPLAY_COUNT_WIDTH   = 32,
+  parameter REPLAY_COUNT         = 2
 )
 
 (
-    // register bus decode
-    input             							 reg_req,
-    input             							 reg_rd_wr_L,
-    input [31:0]      							 reg_addr,
-    input [31:0]      							 reg_wr_data,
-    output            							 reg_ack,
-    output [31:0]								 reg_rd_data,
+    // system signals
+    input             							        qdr_clk,
+    input                                               resetn,
+
+    // controll signals
+	input                                               sw_rst,
+    input                                               start_replay,
+    output                                              compelete_replay,
+    input                                               start_store,
+
+    // addr signals
+    input  [QDR_ADDR_WIDTH-1:0]                         mem_addr_low,
+    input  [QDR_ADDR_WIDTH-1:0]                         mem_addr_high,
     
     // QDR Memory Interface  
-    input             							  init_calib_complete,	  
-    output            							  user_app_wr_cmd0,
-    output [18:0]     							  user_app_wr_addr0,
-    output            							  user_app_rd_cmd0,
-    output [18:0]     							  user_app_rd_addr0,
-    output [143:0] 								  user_app_wr_data0,
-    input             							  user_app_rd_valid0,
-    input [143:0]							      user_app_rd_data0,
-    input             							  qdr_clk,
+    input             							        init_calib_complete,	  
+    output            							        user_app_wr_cmd,
+    output [QDR_ADDR_WIDTH-1:0]     				    user_app_wr_addr,
+    output [QDR_DATA_WIDTH*QDR_BURST_LENGTH-1:0]        user_app_wr_data,
+    output            							        user_app_rd_cmd,
+	output [QDR_ADDR_WIDTH-1:0]                         user_app_rd_addr,
+	input  [QDR_DATA_WIDTH*QDR_BURST_LENGTH-1:0]        user_app_rd_data,
+    input             							        user_app_rd_valid,
 
     // dflow info input Interface
-    input                                           fivetuple_data_in,
-    input                                           pkt_len_in,
-    input                                           tuple_in_vld,
-    output                                          tuple_in_ready,
+    input  [PKT_TUPLE_WIDTH-1:0]                        fivetuple_data_in,
+    input  [PKT_LEN_WIDTH-1:0]                          pkt_len_in,
+    input                                               tuple_in_vld,
+    output                                              tuple_in_ready,
 
     // dflow info output Interface
-    output                                          fivetuple_data_out,
-    output                                          pkt_len_out,
-    output                                          tuple_out_vld,
-    input                                           tuple_out_ready
+    output   [ACTION_TUPLE_WIDTH-1:0]                   fivetuple_data_out,
+    output   [PKT_LEN_WIDTH-1:0]                        pkt_len_out,
+    output                                              tuple_out_vld,
+    input                                               tuple_out_ready
+
 );
 
     /* upstream plane */
-    assign tuple_in_READY        = ~inqueue_fifo_nearly_full;
+    assign tuple_in_ready        = ~fifo_inqueue_nearly_full;
 
-    localparam  NUM_RW_REGS = 4;
-
-	wire [NUM_RW_REGS*C_S_AXI_DATA_WIDTH-1:0]   	rw_regs;
-	wire                                            sw_rst;
-    wire                                            start_reply;
-    wire                                            compelete_reply;
-    wire                                            start_store;
-
-    assign  sw_rst           = rw_regs[(C_S_AXI_DATA_WIDTH*0)+1-1:(C_S_AXI_DATA_WIDTH*0)];
-    assign  start_store      = rw_regs[(C_S_AXI_DATA_WIDTH*1)+1-1:(C_S_AXI_DATA_WIDTH*1)];
-    assign  start_replay     = rw_regs[(C_S_AXI_DATA_WIDTH*2)+1-1:(C_S_AXI_DATA_WIDTH*2)];
-    assign  compelete_replay = rw_regs[(C_S_AXI_DATA_WIDTH*3)+1-1:(C_S_AXI_DATA_WIDTH*3)];
-
-
-	//--------------------------------------------------
-    //
-    // --- cutter disabled
-    //--------------------------------------------------  
-     genevr_pipeline_regs #  
-    (
-        .NUM_REG_USED(4)
-    )
-    pipeline_regs_inst
-    (
-        .reg_req_in            (reg_req),
-        .reg_rd_wr_L_in        (reg_rd_wr_L),
-        .reg_addr_in           (reg_addr),
-        .reg_wr_data           (reg_wr_data),
-        
-        .reg_ack_out           (reg_ack),
-        .reg_rd_data           (reg_rd_data),
-        
-        .rw_regs               (rw_regs),
-            
-        .clk                   (s_axi_aclk), 
-        .reset                 (~axi_aresetn)
-    );
+    // link to axi bus
+//    assign  sw_rst           = rw_regs[(C_S_AXI_DATA_WIDTH*0)+1-1:(C_S_AXI_DATA_WIDTH*0)];
+//    assign  start_store      = rw_regs[(C_S_AXI_DATA_WIDTH*1)+1-1:(C_S_AXI_DATA_WIDTH*1)];
+//    assign  start_replay     = rw_regs[(C_S_AXI_DATA_WIDTH*2)+1-1:(C_S_AXI_DATA_WIDTH*2)];
+//    assign  compelete_replay = rw_regs[(C_S_AXI_DATA_WIDTH*3)+1-1:(C_S_AXI_DATA_WIDTH*3)];
+    
+    /* inqueue */
+    wire  [PKT_TUPLE_WIDTH+PKT_LEN_WIDTH-1:0]          fifo_inqueue_data;
+    wire                                               fifo_inqueue_rd_en;
+    wire                                               fifo_inqueue_nearly_full;
+    wire                                               fifo_inqueue_empty;
+    /* outqueue */
+    wire  [PKT_TUPLE_WIDTH+PKT_LEN_WIDTH-1:0]          fifo_outqueue_data;
+    wire                                               fifo_outqueue_wr_en;
+    wire                                               fifo_outqueue_nearly_full;
 
     inqueue # (
         .ACTION_TUPLE_WIDTH(128),
@@ -118,7 +108,7 @@ module dflow_generator
 
         /* system clock */
         .clk                     (qdr_clk),
-        .resetn                  (~axi_aresetn),
+        .resetn                  (resetn),
                                 
         /* pkt plane */          
         .fivetuple_data_in       (fivetuple_data_in),
@@ -127,65 +117,62 @@ module dflow_generator
         .tuple_in_ready          (tuple_in_ready),
                                  
         /* fifo plane */         
-        .fifo_data_out           (fifo_wr_data),
-        .fifo_rd_en              (fifo_wr_rd_en),
+        .fifo_data_out           (fifo_inqueue_data),
+        .fifo_rd_en              (fifo_inqueue_rd_en),
         // .fifo_wr_en              (),
-        // .fifo_nearly_full        (),
-        .fifo_empty              (fifo_wr_empty)
+        .fifo_nearly_full        (fifo_inqueue_nearly_full),
+        .fifo_empty              (fifo_inqueue_empty)
     );
 
-    wire        dflow_mem_high_store;
+    wire  [QDR_ADDR_WIDTH-1:0]               dflow_mem_high_store; 
 
 	fifo_to_mem #(
-		.FIFO_DATA_WIDTH      		(QDR_DATA_WIDTH*QDR_BURST_LENGTH),
+		.FIFO_DATA_WIDTH      		(PKT_LEN_WIDTH+PKT_TUPLE_WIDTH),
 		.MEM_ADDR_WIDTH       		(QDR_ADDR_WIDTH),
 		.MEM_DATA_WIDTH       		(QDR_DATA_WIDTH*QDR_BURST_LENGTH)
 	)
 	  fifo_to_mem_inst
 	(
 	    .clk								(qdr_clk),
-		.rst								(~axi_aresetn),
+		.rst								(~resetn),
                           		
-	    .fifo_rd_en							(fifo_wr_rd_en),
-	    .fifo_data							(fifo_wr_data),
-	    .fifo_empty							(fifo_wr_empty),
+	    .fifo_rd_en							(fifo_inqueue_rd_en),
+	    .fifo_data							(fifo_inqueue_data),
+	    .fifo_empty							(fifo_inqueue_empty),
 		                      		
 	    .app_wr_cmd                     	(user_app_wr_cmd),
 		.app_wr_data                    	(user_app_wr_data),
 		.app_wr_addr                    	(user_app_wr_addr),
-		.cal_done							(init_calib_complete)，
+		.cal_done							(init_calib_complete),
          //****************************wrl  rewrite******************** 
 		.start_store                        (start_store),
 	    .sw_rst								(sync_sw_rst),	
          //********************************************************************		
-	    .dflow_addr_low                     (0),
-	    .dflow_addr_high                    (19'h7ffff),
+	    .dflow_addr_low                     (mem_addr_low),
+	    .dflow_addr_high                    (mem_addr_high),
 	    .dflow_mem_high                     (dflow_mem_high_store)
 	);
 
 	mem_to_fifo #(
-		.NUM_QUEUES     	  (C_NUM_QUEUES),
-		.FIFO_DATA_WIDTH      (QDR_DATA_WIDTH*QDR_BURST_LENGTH),
+		.FIFO_DATA_WIDTH      (PKT_LEN_WIDTH+PKT_TUPLE_WIDTH),
 		.MEM_ADDR_WIDTH       (QDR_ADDR_WIDTH),
 		.MEM_DATA_WIDTH       (QDR_DATA_WIDTH*QDR_BURST_LENGTH),
-		.MEM_BW_WIDTH         (QDR_BW_WIDTH),
-		.MEM_BURST_LENGTH	  (QDR_BURST_LENGTH),
-		.REPLAY_COUNT_WIDTH   (REPLAY_COUNT_WIDTH)
+		.REPLAY_COUNT_WIDTH   (REPLAY_COUNT_WIDTH),
+        .REPLAY_COUNT         (REPLAY_COUNT)
 	)
 		mem_to_fifo_inst
 	(
 		.clk							(qdr_clk),
-		.rst							(~axi_aresetn),
+		.rst							(~resetn),
 	                      	
 		.app_rd_cmd                     (user_app_rd_cmd),
 		.app_rd_addr                    (user_app_rd_addr),
 		.app_rd_data                    (user_app_rd_data),
 		.app_rd_valid                   (user_app_rd_valid),
-		.mem_addr_high					(mem_addr_high),
 		
-        .fifo_wr_en					    (fifo_rd_wr_en),
-        .fifo_data					    (fifo_rd_data),
-        .fifo_full					    (fifo_rd_full),
+        .fifo_wr_en					    (fifo_outqueue_wr_en),
+        .fifo_data					    (fifo_outqueue_data),
+        .fifo_nearly_full               (fifo_outqueue_nearly_full),
 		
 		//**************************wrl  rewrite********************
 		.start_replay                   (start_replay),
@@ -195,9 +182,10 @@ module dflow_generator
 		//**********************************************************
 		
 		.cal_done						(init_calib_complete),
-	    .dflow_mem_low                  (0),
+	    .dflow_mem_low                  (mem_addr_low),
 	    .dflow_mem_high                 (dflow_mem_high_store)
 	);
+
 
     outqueue # (
         .ACTION_TUPLE_WIDTH(128),
@@ -208,14 +196,12 @@ module dflow_generator
     (
         /* system clock */
         .clk                     (qdr_clk), 
-        .resetn                  (~axi_aresetn), 
+        .resetn                  (resetn), 
                              
         /* fifo plane */         
-        .fifo_data_in            (fifo_rd_data),
-        // .fifo_rd_en              (),
-        .fifo_wr_en              (fifo_rd_wr_en),
-        .fifo_nearly_full        (fifo_rd_full),
-        // .fifo_empty              (),
+        .fifo_data_in            (fifo_outqueue_data),
+        .fifo_wr_en              (fifo_outqueue_wr_en),
+        .fifo_nearly_full        (fifo_outqueue_nearly_full),
 
         /* pkt plane */          
         .fivetuple_data_out      (fivetuple_data_out),

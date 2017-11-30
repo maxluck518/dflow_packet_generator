@@ -47,8 +47,7 @@ module inqueue
             fifo_in_pkt_len_next <= 0;
             fifo_in_pkt_fivetuple_next <= 0;
             wr_en <=0;
-        end
-        else begin
+        end        else begin
             if(tuple_in_vld) begin
                 fifo_in_pkt_fivetuple_next <= fivetuple_data_in;
                 fifo_in_pkt_len_next <= pkt_len_in;

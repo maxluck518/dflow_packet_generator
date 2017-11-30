@@ -7,9 +7,7 @@
   */
 module mem_to_fifo
 #(
-	parameter NUM_QUEUES       		= 4,
-	parameter NUM_QUEUES_BITS 		= 2,
-    parameter FIFO_DATA_WIDTH      = 144,
+    parameter FIFO_DATA_WIDTH      = 120,
 	parameter MEM_ADDR_WIDTH       = 19,
 	parameter MEM_DATA_WIDTH       = 144,
 	parameter MEM_BW_WIDTH         = 4,
@@ -32,7 +30,7 @@ module mem_to_fifo
 	//*****************************wrl rewrite**************************
 	output reg                              fifo_wr_en,
     output reg [FIFO_DATA_WIDTH-1:0]        fifo_data,
-	input                           		fifo_neadly_full,
+	input                           		fifo_nearly_full,
 
     // Misc
 	input									start_replay,
@@ -46,17 +44,16 @@ module mem_to_fifo
 	input									cal_done
 );
 
-    reg									    replay_count;
+    reg	[REPLAY_COUNT_WIDTH-1:0]			replay_count;
+	reg [MEM_ADDR_WIDTH-1:0]  			    mem_ad_rd_r;
     wire                                    wr_en;
 
-    assign  wr_en = fifo_nearly_full && cal_done; 
-    assign  compelete_replay = if(replay_count == 0) 1:0;
+    assign  wr_en = ~fifo_nearly_full && cal_done; 
+    assign  compelete_replay = (replay_count == 0)? 1:0;
 
     always @ (posedge clk) begin
         if(rst || sw_rst) begin
-            mem_ad_rd_r      <= q0_addr_low;
-            replay_count_r   <= q0_replay_count;
-            compelete_replay <= 0;
+            mem_ad_rd_r      <= dflow_mem_low;
             replay_count     <= REPLAY_COUNT;
         end
         else if(start_replay) begin
@@ -90,7 +87,7 @@ module mem_to_fifo
         else begin
             if(app_rd_valid) begin
                 fifo_wr_en  <= wr_en;
-                fifo_data   <= app_rd_data;
+                fifo_data   <= app_rd_data[FIFO_DATA_WIDTH-1:0];
             end
             else begin
                 fifo_wr_en  <= 0;

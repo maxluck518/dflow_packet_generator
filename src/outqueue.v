@@ -2,6 +2,7 @@
 
 module outqueue
 #(
+  parameter QDR_DATA_WIDTH       = 36,
   parameter ACTION_TUPLE_WIDTH     = 128,
   parameter PKT_TUPLE_WIDTH        = 104,
   parameter PKT_LEN_WIDTH          = 16
@@ -20,8 +21,8 @@ module outqueue
 
     /* pkt plane */
     output   [ACTION_TUPLE_WIDTH-1:0]                   fivetuple_data_out,
-    output   [PKT_LEN_WIDTH]                            pkt_len_out,
-    output                                              tuple_out_vld,
+    output   [PKT_LEN_WIDTH-1:0]                        pkt_len_out,
+    output reg                                          tuple_out_vld,
     input                                               tuple_out_ready
 
 );
@@ -47,7 +48,7 @@ module outqueue
 
     /* fifo plane  */
     fallthrough_small_fifo_v2 #
-    (.WIDTH(PKT_TUPLE_WIDTH+16),
+    (.WIDTH(PKT_TUPLE_WIDTH+PKT_LEN_WIDTH),
      .MAX_DEPTH_BITS(10))
       info_fifo
         (.din           (fifo_data_in),  // Data in

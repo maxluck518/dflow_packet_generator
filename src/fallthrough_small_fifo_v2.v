@@ -74,8 +74,7 @@ module fallthrough_small_fifo_v2
             dout <= 0;
             middle_dout <= 0;
          end
-      else
-         begin
+      else         begin
             if (will_update_middle)
                middle_dout <= fifo_dout;
             
