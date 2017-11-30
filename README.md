@@ -2,6 +2,7 @@
 packet generator for dflow experiment
 
 ## Content
+```
 .
 ├── README.md
 ├── src
@@ -24,6 +25,8 @@ packet generator for dflow experiment
     ├── dflow_generator_test.v
     ├── inqueue_test.v
     └── outqueue_test.v
+    
+```
 
 ## DataFlow
 
