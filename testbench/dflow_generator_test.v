@@ -1,6 +1,6 @@
 `timescale 1 ns / 1 ps
 
-module inqueue_test
+module dflow_packet_generator_test
 #(
   parameter ACTION_TUPLE_WIDTH     = 128,
   parameter PKT_TUPLE_WIDTH        = 104,

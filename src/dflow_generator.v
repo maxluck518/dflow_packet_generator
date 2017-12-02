@@ -26,7 +26,7 @@ module dflow_generator
 (
     /* system clk */
     input                               clk,
-    input                               reset,
+    input                               resetn,
     
     //AXI-lite Slave interface
     input                               s_axi_aclk,
@@ -68,19 +68,33 @@ module dflow_generator
     input             				    qdr_clk,
 
     // dflow info input Interface
-    input                               five_tuple_data_in,
-    input                               pkt_len_in,
-    input                               tuple_in_vld,
+    input   [ACTION_TUPLE_WIDTH-1:0]    tuple_in_transtuple_DATA,
+    input                               tuple_in_transtuple_VALID,
+    input   [PKT_TUPLE_WIDTH-1:0]       tuple_in_fivetuple_DATA,
     output                              tuple_in_ready,
 
     // dflow info output Interface
-    output                              five_tuple_data_out,
-    output                              pkt_len_out,
-    output reg                          tuple_out_vld,
+    output   [ACTION_TUPLE_WIDTH-1:0]   tuple_out_transtuple_DATA,
+    output                              tuple_out_transtuple_VALID,
+    output   [PKT_TUPLE_WIDTH-1:0]      tuple_out_fivetuple_DATA,
     input                               tuple_out_ready
 
-  );
+);
+    // modify interface 
+    wire  [PKT_TUPLE_WIDTH-1:0]         fivetuple_data_in;
+    wire  [PKT_LEN_WIDTH-1:0]           pkt_len_in;
+    wire                                tuple_in_vld;
+    wire   [ACTION_TUPLE_WIDTH-1:0]     fivetuple_data_out;
+    wire   [PKT_LEN_WIDTH-1:0]          pkt_len_out;
+    reg                                 tuple_out_vld;
 
+    assign  fivetuple_data_in        = tuple_in_fivetuple_DATA;
+    assign  pkt_len_in               = tuple_in_transtuple_DATA[15:0];
+    assign  tuple_in_vld             = tuple_in_transtuple_VALID;
+    assign  tuple_out_fivetuple_DATA = fivetuple_data_out;
+    assign  tuple_out_transtuple_DATA[PKT_LEN_WIDTH-1:0]                  = pkt_len_out;
+    assign  tuple_out_transtuple_DATA[ACTION_TUPLE_WIDTH-1:PKT_LEN_WIDTH] = 0;
+    assign  tuple_out_transtuple_VALID = tuple_out_vld;
 
    // register bus decode
     wire              					reg_req;
@@ -127,7 +141,7 @@ module dflow_generator
       
 		.s_axi_aclk       (s_axi_aclk),
 		.s_axi_aresetn    (s_axi_aresetn),
-		.reset            (reset), 
+		.reset            (~resetn), 
 		.clk              (clk)
 	);
 

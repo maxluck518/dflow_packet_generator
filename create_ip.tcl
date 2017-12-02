@@ -17,8 +17,6 @@ update_compile_order -fileset sources_1
 
 
 ipx::package_project -root_dir ./dflow_packet_generator_vivado/dflow_packet_generator/dflow_packet_generator.srcs -vendor xilinx.com -library user -taxonomy /UserIP
-ipx::add_bus_parameter ASSOCIATED_BUSIF [ipx::get_bus_interfaces s_axi_aclk -of_objects [ipx::current_core]]
-set_property value s_axi [ipx::get_bus_parameters ASSOCIATED_BUSIF -of_objects [ipx::get_bus_interfaces s_axi_aclk -of_objects [ipx::current_core]]]
 set_property core_revision 2 [ipx::current_core]
 ipx::create_xgui_files [ipx::current_core]
 ipx::update_checksums [ipx::current_core]
