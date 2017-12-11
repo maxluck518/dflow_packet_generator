@@ -59,7 +59,7 @@ module dflow_generator_core
 );
 
     /* upstream plane */
-    assign tuple_in_ready        = ~fifo_inqueue_nearly_full;
+    // assign tuple_in_ready        = ~fifo_inqueue_nearly_full;
 
     // link to axi bus
 //    assign  sw_rst           = rw_regs[(C_S_AXI_DATA_WIDTH*0)+1-1:(C_S_AXI_DATA_WIDTH*0)];
@@ -68,14 +68,14 @@ module dflow_generator_core
 //    assign  compelete_replay = rw_regs[(C_S_AXI_DATA_WIDTH*3)+1-1:(C_S_AXI_DATA_WIDTH*3)];
     
     /* inqueue */
-    wire  [PKT_TUPLE_WIDTH+PKT_LEN_WIDTH-1:0]          fifo_inqueue_data;
-    wire                                               fifo_inqueue_rd_en;
-    wire                                               fifo_inqueue_nearly_full;
-    wire                                               fifo_inqueue_empty;
+    (*MARK_DEBUG="true"*)wire  [PKT_TUPLE_WIDTH+PKT_LEN_WIDTH-1:0]          fifo_inqueue_data;
+    (*MARK_DEBUG="true"*)wire                                               fifo_inqueue_rd_en;
+    (*MARK_DEBUG="true"*)wire                                               fifo_inqueue_nearly_full;
+    (*MARK_DEBUG="true"*)wire                                               fifo_inqueue_empty;
     /* outqueue */
-    wire  [PKT_TUPLE_WIDTH+PKT_LEN_WIDTH-1:0]          fifo_outqueue_data;
-    wire                                               fifo_outqueue_wr_en;
-    wire                                               fifo_outqueue_nearly_full;
+    (*MARK_DEBUG="true"*)wire  [PKT_TUPLE_WIDTH+PKT_LEN_WIDTH-1:0]          fifo_outqueue_data;
+    (*MARK_DEBUG="true"*)wire                                               fifo_outqueue_wr_en;
+    (*MARK_DEBUG="true"*)wire                                               fifo_outqueue_nearly_full;
 
     inqueue # (
         .ACTION_TUPLE_WIDTH(128),

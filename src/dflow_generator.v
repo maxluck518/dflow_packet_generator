@@ -81,12 +81,12 @@ module dflow_generator
 
 );
     // modify interface 
-    wire  [PKT_TUPLE_WIDTH-1:0]         fivetuple_data_in;
-    wire  [PKT_LEN_WIDTH-1:0]           pkt_len_in;
-    wire                                tuple_in_vld;
-    wire   [ACTION_TUPLE_WIDTH-1:0]     fivetuple_data_out;
-    wire   [PKT_LEN_WIDTH-1:0]          pkt_len_out;
-    reg                                 tuple_out_vld;
+    (*MARK_DEBUG="true"*)wire  [PKT_TUPLE_WIDTH-1:0]         fivetuple_data_in;
+    (*MARK_DEBUG="true"*)wire  [PKT_LEN_WIDTH-1:0]           pkt_len_in;
+    (*MARK_DEBUG="true"*)wire                                tuple_in_vld;
+    (*MARK_DEBUG="true"*)wire   [ACTION_TUPLE_WIDTH-1:0]     fivetuple_data_out;
+    (*MARK_DEBUG="true"*)wire   [PKT_LEN_WIDTH-1:0]          pkt_len_out;
+    (*MARK_DEBUG="true"*)reg                                 tuple_out_vld;
 
     assign  fivetuple_data_in        = tuple_in_fivetuple_DATA;
     assign  pkt_len_in               = tuple_in_transtuple_DATA[15:0];
@@ -148,17 +148,17 @@ module dflow_generator
     localparam NUM_RW_REGS = 6;
 
 	wire [NUM_RW_REGS*C_S_AXI_DATA_WIDTH-1:0]               rw_regs;
-	wire                                                    sw_rst;
-    wire                                                    start_replay;
-    wire                                                    compelete_replay;
-    wire                                                    start_store;
-    wire [QDR_ADDR_WIDTH-1:0]                               mem_addr_low;
-    wire [QDR_ADDR_WIDTH-1:0]                               mem_addr_high;
+	(*MARK_DEBUG="true"*)wire                                                    sw_rst;
+    (*MARK_DEBUG="true"*)wire                                                    start_replay;
+    (*MARK_DEBUG="true"*)wire                                                    compelete_replay;
+    (*MARK_DEBUG="true"*)wire                                                    start_store;
+    (*MARK_DEBUG="true"*)wire [QDR_ADDR_WIDTH-1:0]                               mem_addr_low;
+    (*MARK_DEBUG="true"*)wire [QDR_ADDR_WIDTH-1:0]                               mem_addr_high;
 
     assign  sw_rst           = rw_regs[(C_S_AXI_DATA_WIDTH*0)+1-1:(C_S_AXI_DATA_WIDTH*0)];
     assign  start_store      = rw_regs[(C_S_AXI_DATA_WIDTH*1)+1-1:(C_S_AXI_DATA_WIDTH*1)];
     assign  start_replay     = rw_regs[(C_S_AXI_DATA_WIDTH*2)+1-1:(C_S_AXI_DATA_WIDTH*2)];
-    assign  compelete_replay = rw_regs[(C_S_AXI_DATA_WIDTH*3)+1-1:(C_S_AXI_DATA_WIDTH*3)];
+   // assign  compelete_replay = rw_regs[(C_S_AXI_DATA_WIDTH*3)+1-1:(C_S_AXI_DATA_WIDTH*3)];
     assign  mem_addr_low     = rw_regs[(C_S_AXI_DATA_WIDTH*4)+QDR_ADDR_WIDTH-1:(C_S_AXI_DATA_WIDTH*4)];
     assign  mem_addr_high    = rw_regs[(C_S_AXI_DATA_WIDTH*5)+QDR_ADDR_WIDTH-1:(C_S_AXI_DATA_WIDTH*5)];
 	//--------------------------------------------------
