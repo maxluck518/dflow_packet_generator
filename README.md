@@ -3,24 +3,29 @@ packet generator for dflow experiment
 
 ## Content
 ```
+
 .
+├── create_ip.tcl
 ├── README.md
 ├── src
-│   ├── axi_to_reg_bus.v
-│   ├── dflow_generator_core.v
-│   ├── dflow_generator.v
-│   ├── fallthrough_small_fifo_v2.v
-│   ├── fifo_to_mem.v
-│   ├── genevr_pipeline_regs.v
-│   ├── inqueue.v
-│   ├── ip_core
-│   │   └── reg_access_fifo
-│   │       └── reg_access_fifo.xci
-│   ├── mem_to_fifo.v
-│   ├── outqueue.v
-│   ├── small_fifo_v3.v
-│   └── xil_async_fifo.v
+│   ├── import
+│   │   ├── axi_to_reg_bus.v
+│   │   ├── dflow_generator_core.v
+│   │   ├── dflow_generator_datapath.v
+│   │   ├── dflow_generator.v
+│   │   ├── fallthrough_small_fifo_v2.v
+│   │   ├── fifo_to_mem.v
+│   │   ├── genevr_pipeline_regs.v
+│   │   ├── inqueue.v
+│   │   ├── mem_to_fifo.v
+│   │   ├── outqueue.v
+│   │   └── small_fifo_v3.v
+│   └── ip
+│       ├── reg_access_fifo
+│       ├── xil_async_fifo_in
+│       └── xil_async_fifo_out
 └── testbench
+    ├── dflow_generator_datapath_test.v
     ├── dflow_generator_test.v
     ├── inqueue_test.v
     └── outqueue_test.v
