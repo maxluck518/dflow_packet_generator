@@ -152,9 +152,9 @@ module dflow_generator
         .clk              (clk)
     );
 
-    localparam NUM_RW_REGS = 6;
+    localparam NUM_RW_REGS = 8;
 
-    wire [NUM_RW_REGS*C_S_AXI_DATA_WIDTH-1:0]               rw_regs;
+    (*MARK_DEBUG="true"*)wire [NUM_RW_REGS*C_S_AXI_DATA_WIDTH-1:0]               rw_regs;
     (*MARK_DEBUG="true"*)wire                                                    sw_rst;
     (*MARK_DEBUG="true"*)wire                                                    start_replay;
     (*MARK_DEBUG="true"*)wire                                                    compelete_replay;
@@ -197,23 +197,23 @@ module dflow_generator
        );
 
     // dflow info input Sync signals
-    wire  [PKT_TUPLE_WIDTH-1:0]                     sync_fivetuple_data_in;
-    wire  [PKT_LEN_WIDTH-1:0]                       sync_pkt_len_in;
-    reg                                             sync_tuple_in_vld;
-    wire                                            sync_tuple_in_ready;
-    wire  [PKT_LEN_WIDTH+PKT_TUPLE_WIDTH-1:0]       sync_fifo_in_data;
+    (*MARK_DEBUG="true"*)wire  [PKT_TUPLE_WIDTH-1:0]                     sync_fivetuple_data_in;
+    (*MARK_DEBUG="true"*)wire  [PKT_LEN_WIDTH-1:0]                       sync_pkt_len_in;
+    (*MARK_DEBUG="true"*)reg                                             sync_tuple_in_vld;
+    (*MARK_DEBUG="true"*)wire                                            sync_tuple_in_ready;
+    (*MARK_DEBUG="true"*)wire  [PKT_LEN_WIDTH+PKT_TUPLE_WIDTH-1:0]       sync_fifo_in_data;
     assign  sync_fivetuple_data_in = sync_fifo_in_data[PKT_TUPLE_WIDTH+PKT_LEN_WIDTH-1:PKT_LEN_WIDTH];
     assign  sync_pkt_len_in = sync_fifo_in_data[PKT_LEN_WIDTH-1:0];
     // dflow info output Sync signals
-    wire   [PKT_TUPLE_WIDTH-1:0]                    sync_fivetuple_data_out;
-    wire   [PKT_LEN_WIDTH-1:0]                      sync_pkt_len_out;
-    wire                                            sync_tuple_out_vld;
-    wire                                            sync_tuple_out_ready;
+    (*MARK_DEBUG="true"*)wire   [PKT_TUPLE_WIDTH-1:0]                    sync_fivetuple_data_out;
+    (*MARK_DEBUG="true"*)wire   [PKT_LEN_WIDTH-1:0]                      sync_pkt_len_out;
+    (*MARK_DEBUG="true"*)wire                                            sync_tuple_out_vld;
+    (*MARK_DEBUG="true"*)wire                                            sync_tuple_out_ready;
 
-    wire                                sync_in_fifo_wr_en;
-    wire                                sync_in_fifo_rd_en;
-    wire                                sync_in_fifo_prog_full;
-    wire                                sync_in_fifo_empty;
+    (*MARK_DEBUG="true"*)wire                                sync_in_fifo_wr_en;
+    (*MARK_DEBUG="true"*)wire                                sync_in_fifo_rd_en;
+    (*MARK_DEBUG="true"*)wire                                sync_in_fifo_prog_full;
+    (*MARK_DEBUG="true"*)wire                                sync_in_fifo_empty;
 
     assign tuple_in_ready = ~sync_in_fifo_prog_full;
     assign sync_in_fifo_wr_en = tuple_in_ready & tuple_in_vld;
@@ -230,10 +230,10 @@ module dflow_generator
                 sync_tuple_in_vld <= 0;
         end
 
-    wire                                sync_out_fifo_wr_en;
-    wire                                sync_out_fifo_rd_en;
-    wire                                sync_out_fifo_prog_full;
-    wire                                sync_out_fifo_empty;
+    (*MARK_DEBUG="true"*)wire                                sync_out_fifo_wr_en;
+    (*MARK_DEBUG="true"*)wire                                sync_out_fifo_rd_en;
+    (*MARK_DEBUG="true"*)wire                                sync_out_fifo_prog_full;
+    (*MARK_DEBUG="true"*)wire                                sync_out_fifo_empty;
 
     assign sync_tuple_out_ready = ~sync_out_fifo_prog_full;
     assign sync_out_fifo_wr_en = sync_tuple_out_ready & sync_tuple_out_vld;

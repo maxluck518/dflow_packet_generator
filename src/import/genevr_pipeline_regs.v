@@ -23,7 +23,7 @@ module genevr_pipeline_regs
 	#(
 	  parameter AXI_DATA_WIDTH = 32,
 	  parameter AXI_ADDR_WIDTH = 26,
-	  parameter NUM_REQ_REG_USED = 4,
+	  parameter NUM_REQ_REG_USED = 8,
 	  parameter NUM_RESP_REG_USED = 2,
 	  parameter REG_ADDR_WIDTH = `REPLAY_UENGINE_REG_ADDR_WIDTH,
 	  parameter REPLAY_UENGINE_BLOCK_ADDR = 17'h10017
@@ -46,8 +46,18 @@ module genevr_pipeline_regs
 	  input                                  reset
 	);
 	
-	(*MARK_DEBUG="true"*)reg  [AXI_DATA_WIDTH-1:0]                     req_reg_file[NUM_REQ_REG_USED-1:0];
-	(*MARK_DEBUG="true"*)reg  [AXI_DATA_WIDTH-1:0]                     resp_reg_file[NUM_RESP_REG_USED-1:0];
+	function integer log2;
+      	input integer number;
+      	begin
+        	log2=0;
+         	while(2**log2<number) begin
+            		log2=log2+1;
+         	end
+      	end
+   	endfunction // log2
+
+	(*MARK_DEBUG="true"*)reg  [AXI_DATA_WIDTH-1:0]                     req_reg_file[log2(NUM_REQ_REG_USED*4)-1:0];
+	(*MARK_DEBUG="true"*)reg  [AXI_DATA_WIDTH-1:0]                     resp_reg_file[log2(NUM_RESP_REG_USED*4)-1:0];
 	(*MARK_DEBUG="true"*)wire [`REPLAY_UENGINE_BLOCK_ADDR_WIDTH-1:0]   tag_addr;
 	(*MARK_DEBUG="true"*)wire[REG_ADDR_WIDTH-1:0]                      reg_addr;
 	(*MARK_DEBUG="true"*)wire                                          addr_req_good;
@@ -72,7 +82,7 @@ module genevr_pipeline_regs
 	
 	generate
 		for(i=0; i<NUM_REQ_REG_USED; i=i+1) begin : reqregs
-			assign rw_regs[AXI_DATA_WIDTH*(i+1)-1 : AXI_DATA_WIDTH*i] = req_reg_file[i];
+			assign rw_regs[AXI_DATA_WIDTH*(i+1)-1 : AXI_DATA_WIDTH*i] = req_reg_file[i*4+3];
 		end
     endgenerate
 
