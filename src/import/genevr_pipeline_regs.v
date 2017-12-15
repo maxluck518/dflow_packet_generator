@@ -83,12 +83,12 @@ module genevr_pipeline_regs
                     resp_reg_file[1] = 32'h00000000;
                 end
                 2'b01: begin
-                    resp_reg_file[0] = 32'h00000000;
-                    resp_reg_file[1] = 32'h00000001;
-                end
-                2'b10: begin
                     resp_reg_file[0] = 32'h00000001;
                     resp_reg_file[1] = 32'h00000000;
+                end
+                2'b10: begin
+                    resp_reg_file[0] = 32'h00000000;
+                    resp_reg_file[1] = 32'h00000001;
                 end
                 2'b11: begin
                     resp_reg_file[0] = 32'h00000001;
