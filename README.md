@@ -47,4 +47,16 @@ graph LR
 	reg---|axi|Zynq	
 ```
 
+## RegFile
+
+| signal           | width(bit) | address    |
+| ---------------- | ---------- | ---------- |
+| sw_rst           | 1          | 0x444005c0 |
+| start_store      | 1          | 0x444005c4 |
+| start_replay     | 1          | 0x444005c8 |
+| mem_addr_low     | 19         | 0x444005d0 |
+| mem_addr_high    | 19         | 0x444005d4 |
+| compelete_store  | 1          | 0x44c005c0 |
+| compelete_replay | 1          | 0x44c005c1 |
+
 To be continued!
