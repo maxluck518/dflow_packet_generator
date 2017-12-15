@@ -113,7 +113,7 @@ module dflow_generator_datapath_test
         end
         $display("[%t] : System Reset De-asserted...", $realtime);
         resetn = 1'b1;
-        // sw_rst = 1'b0;
+        sw_rst = 1'b0;
         for (i = 0; i < 50 ; i = i + 1) begin
                    @(posedge clk);
         end
