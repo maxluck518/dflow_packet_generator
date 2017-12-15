@@ -71,6 +71,7 @@ module dflow_generator_datapath
     input                                   start_replay,
     output                                  compelete_replay,
     input                                   start_store,
+    output                                  compelete_store,
     input [QDR_ADDR_WIDTH-1:0]              mem_addr_low,
     input [QDR_ADDR_WIDTH-1:0]              mem_addr_high,
 
@@ -273,6 +274,7 @@ module dflow_generator_datapath
 	    .sw_rst                                 (sw_rst),
         .start_replay                           (start_replay),
         .compelete_replay                       (compelete_replay),
+        .compelete_store                        (compelete_store),
         .start_store                            (start_store),
 
         // addr signals

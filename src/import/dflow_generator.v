@@ -158,6 +158,7 @@ module dflow_generator
     (*MARK_DEBUG="true"*)wire                                                    sw_rst;
     (*MARK_DEBUG="true"*)wire                                                    start_replay;
     (*MARK_DEBUG="true"*)wire                                                    compelete_replay;
+    (*MARK_DEBUG="true"*)wire                                                    compelete_store;
     (*MARK_DEBUG="true"*)wire                                                    start_store;
     (*MARK_DEBUG="true"*)wire [QDR_ADDR_WIDTH-1:0]                               mem_addr_low;
     (*MARK_DEBUG="true"*)wire [QDR_ADDR_WIDTH-1:0]                               mem_addr_high;
@@ -174,7 +175,8 @@ module dflow_generator
     //--------------------------------------------------  
      genevr_pipeline_regs #  
     (
-        .NUM_REG_USED(NUM_RW_REGS)
+        .NUM_REQ_REG_USED(NUM_RW_REGS),
+        .NUM_RESP_REG_USED(2)
     )
     pipeline_regs_inst
     (
@@ -187,6 +189,8 @@ module dflow_generator
       .reg_rd_data           (reg_rd_data),
       
       .rw_regs               (rw_regs),
+      .compelete_store                        (compelete_store),
+      .compelete_replay                       (compelete_replay),
           
       .clk                   (s_axi_aclk), 
      .reset                 (~s_axi_aresetn)
@@ -273,6 +277,7 @@ module dflow_generator
 	    .sw_rst                                 (sw_rst),
         .start_replay                           (start_replay),
         .compelete_replay                       (compelete_replay),
+        .compelete_store                        (compelete_store),
         .start_store                            (start_store),
 
         // addr signals

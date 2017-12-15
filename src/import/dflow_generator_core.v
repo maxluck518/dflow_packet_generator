@@ -29,6 +29,7 @@ module dflow_generator_core
     input                                               start_replay,
     output                                              compelete_replay,
     input                                               start_store,
+    output                                              compelete_store,
 
     // addr signals
     input  [QDR_ADDR_WIDTH-1:0]                         mem_addr_low,
@@ -125,6 +126,7 @@ module dflow_generator_core
 		.cal_done							(init_calib_complete),
          //****************************wrl  rewrite******************** 
 		.start_store                        (start_store),
+		.compelete_store                    (compelete_store),
 	    .sw_rst								(sw_rst),	
          //********************************************************************		
 	    .dflow_addr_low                     (mem_addr_low),

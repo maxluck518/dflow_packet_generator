@@ -37,6 +37,7 @@ module fifo_to_mem
     
     // control signals
     input                                   start_store,
+    output                                  compelete_store,
 	input									cal_done,
 	input                                   sw_rst
 );
@@ -46,6 +47,7 @@ module fifo_to_mem
 
 	assign  fifo_rd_en     = ~fifo_empty & cal_done & start_store;
     assign  dflow_mem_high = mem_ad_wr_r;
+    assign  compelete_store = dflow_mem_high == (dflow_addr_high-1);
 
     always @ (posedge clk) begin
       if(rst || sw_rst) begin
