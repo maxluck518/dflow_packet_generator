@@ -41,6 +41,7 @@ module genevr_pipeline_regs
 	  output [AXI_DATA_WIDTH *NUM_REQ_REG_USED -1:0] rw_regs,                  
       input                                  compelete_store,
       input                                  compelete_replay,
+      input                                  compelete_transform,
 	  
 	  input                                  clk,
 	  input                                  reset
@@ -56,8 +57,8 @@ module genevr_pipeline_regs
       	end
    	endfunction // log2
 
-	(*MARK_DEBUG="true"*)reg  [AXI_DATA_WIDTH-1:0]                     req_reg_file[log2(NUM_REQ_REG_USED*4)-1:0];
-	(*MARK_DEBUG="true"*)reg  [AXI_DATA_WIDTH-1:0]                     resp_reg_file[log2(NUM_RESP_REG_USED*4)-1:0];
+	(*MARK_DEBUG="true"*)reg  [AXI_DATA_WIDTH-1:0]                     req_reg_file[NUM_REQ_REG_USED*4-1:0];
+	(*MARK_DEBUG="true"*)reg  [AXI_DATA_WIDTH-1:0]                     resp_reg_file[NUM_RESP_REG_USED*4-1:0];
 	(*MARK_DEBUG="true"*)wire [`REPLAY_UENGINE_BLOCK_ADDR_WIDTH-1:0]   tag_addr;
 	(*MARK_DEBUG="true"*)wire[REG_ADDR_WIDTH-1:0]                      reg_addr;
 	(*MARK_DEBUG="true"*)wire                                          addr_req_good;
@@ -65,18 +66,18 @@ module genevr_pipeline_regs
 	(*MARK_DEBUG="true"*)wire                                          tag_hit;
     (*MARK_DEBUG="true"*)wire                                          addr_req_hit; 
     (*MARK_DEBUG="true"*)wire                                          addr_resp_hit;
-    (*MARK_DEBUG="true"*)wire [1:0]                                    resp_op;
+    (*MARK_DEBUG="true"*)wire [2:0]                                    resp_op;
 
 	//tag_addr is the block address of CUTTER module,and reg_addr is the address of register that sw want to access
 	assign tag_addr = reg_addr_in[AXI_ADDR_WIDTH-1:`REPLAY_UENGINE_REG_ADDR_WIDTH];
 	assign reg_addr = reg_addr_in[`REPLAY_UENGINE_REG_ADDR_WIDTH-1:0];
 	
 	assign tag_hit = tag_addr == REPLAY_UENGINE_BLOCK_ADDR;
-	assign addr_req_good = reg_addr <= NUM_REQ_REG_USED;
-	assign addr_resp_good = reg_addr <= NUM_RESP_REG_USED;
+	assign addr_req_good = reg_addr <= NUM_REQ_REG_USED*4;
+	assign addr_resp_good = reg_addr <= NUM_RESP_REG_USED*4;
     assign addr_req_hit = tag_hit && (reg_addr_in[25:23] == 3'b000);
     assign addr_resp_hit = tag_hit && (reg_addr_in[25:23] == 3'b001);
-    assign resp_op = {compelete_replay,compelete_store};
+    assign resp_op = {compelete_transform,compelete_replay,compelete_store};
 	
 	genvar i;
 	
@@ -86,23 +87,47 @@ module genevr_pipeline_regs
 		end
     endgenerate
 
-	always @(*) begin
+	always @(posedge clk) begin
         case(resp_op) 
-                2'b00: begin
-                    resp_reg_file[0] = 32'h00000000;
-                    resp_reg_file[1] = 32'h00000000;
+                3'b000: begin
+                    resp_reg_file[0] <= 32'h00000000;
+                    resp_reg_file[1] <= 32'h00000000;
+                    resp_reg_file[2] <= 32'h00000000;
                 end
-                2'b01: begin
-                    resp_reg_file[0] = 32'h00000001;
-                    resp_reg_file[1] = 32'h00000000;
+                3'b001: begin
+                    resp_reg_file[0] <= 32'h00000001;
+                    resp_reg_file[1] <= 32'h00000000;
+                    resp_reg_file[2] <= 32'h00000000;
                 end
-                2'b10: begin
-                    resp_reg_file[0] = 32'h00000000;
-                    resp_reg_file[1] = 32'h00000001;
+                3'b010: begin
+                    resp_reg_file[0] <= 32'h00000000;
+                    resp_reg_file[1] <= 32'h00000001;
+                    resp_reg_file[2] <= 32'h00000000;
                 end
-                2'b11: begin
-                    resp_reg_file[0] = 32'h00000001;
-                    resp_reg_file[1] = 32'h00000001;
+                3'b011: begin
+                    resp_reg_file[0] <= 32'h00000001;
+                    resp_reg_file[1] <= 32'h00000001;
+                    resp_reg_file[2] <= 32'h00000000;
+                end
+                3'b100: begin
+                    resp_reg_file[0] <= 32'h00000000;
+                    resp_reg_file[1] <= 32'h00000000;
+                    resp_reg_file[2] <= 32'h00000001;
+                end
+                3'b101: begin
+                    resp_reg_file[0] <= 32'h00000001;
+                    resp_reg_file[1] <= 32'h00000000;
+                    resp_reg_file[2] <= 32'h00000001;
+                end
+                3'b110: begin
+                    resp_reg_file[0] <= 32'h00000000;
+                    resp_reg_file[1] <= 32'h00000001;
+                    resp_reg_file[2] <= 32'h00000001;
+                end
+                3'b111: begin
+                    resp_reg_file[0] <= 32'h00000001;
+                    resp_reg_file[1] <= 32'h00000001;
+                    resp_reg_file[2] <= 32'h00000001;
                 end
         endcase
     end

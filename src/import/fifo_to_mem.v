@@ -42,7 +42,7 @@ module fifo_to_mem
 	input                                   sw_rst
 );
 
-	reg [MEM_ADDR_WIDTH-1:0] 			    mem_ad_wr_r;
+	(*MARK_DEBUG="true"*)reg [MEM_ADDR_WIDTH-1:0] 			    mem_ad_wr_r;
 	reg                                     mem_wr_cmd; 
 
 	assign  fifo_rd_en     = ~fifo_empty & cal_done & start_store;

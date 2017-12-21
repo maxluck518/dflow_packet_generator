@@ -34,6 +34,7 @@ module dflow_generator_core
     // addr signals
     input  [QDR_ADDR_WIDTH-1:0]                         mem_addr_low,
     input  [QDR_ADDR_WIDTH-1:0]                         mem_addr_high,
+    output [QDR_ADDR_WIDTH-1:0]                         mem_high_store,
     
     // QDR Memory Interface  
     input             							        init_calib_complete,	  
@@ -104,7 +105,9 @@ module dflow_generator_core
         .fifo_empty              (fifo_inqueue_empty)
     );
 
-    wire  [QDR_ADDR_WIDTH-1:0]               dflow_mem_high_store; 
+    (*MARK_DEBUG="true"*)wire  [QDR_ADDR_WIDTH-1:0]               dflow_mem_high_store; 
+    assign mem_high_store = dflow_mem_high_store;
+
 
 	fifo_to_mem #(
 		.FIFO_DATA_WIDTH      		(PKT_LEN_WIDTH+PKT_TUPLE_WIDTH),

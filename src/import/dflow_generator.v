@@ -66,6 +66,7 @@ module dflow_generator
     input             				    user_app_rd_valid0,
     input [143:0]                       user_app_rd_data0,
     input             				    qdr_clk,
+    input             				    qdr_resetn,
 //    // dflow datapath controll signals 
 //	input                                   sw_rst,
 //    input                                   start_replay,
@@ -158,12 +159,14 @@ module dflow_generator
     (*MARK_DEBUG="true"*)wire                                                    sw_rst;
     (*MARK_DEBUG="true"*)wire                                                    start_replay;
     (*MARK_DEBUG="true"*)wire                                                    compelete_replay;
+    (*MARK_DEBUG="true"*)wire                                                    compelete_transform;
     (*MARK_DEBUG="true"*)wire                                                    compelete_store;
     (*MARK_DEBUG="true"*)wire                                                    start_store;
     (*MARK_DEBUG="true"*)wire [QDR_ADDR_WIDTH-1:0]                               mem_addr_low;
     (*MARK_DEBUG="true"*)wire [QDR_ADDR_WIDTH-1:0]                               mem_addr_high;
+    (*MARK_DEBUG="true"*)wire [QDR_ADDR_WIDTH-1:0]                               mem_high_store;
 
-    assign  sw_rst           = rw_regs[(C_S_AXI_DATA_WIDTH*0)+1-1:(C_S_AXI_DATA_WIDTH*0)];
+    assign  sw_rst           = ~rw_regs[(C_S_AXI_DATA_WIDTH*0)+1-1:(C_S_AXI_DATA_WIDTH*0)];
     assign  start_store      = rw_regs[(C_S_AXI_DATA_WIDTH*1)+1-1:(C_S_AXI_DATA_WIDTH*1)];
     assign  start_replay     = rw_regs[(C_S_AXI_DATA_WIDTH*2)+1-1:(C_S_AXI_DATA_WIDTH*2)];
     // assign  compelete_replay = rw_regs[(C_S_AXI_DATA_WIDTH*3)+1-1:(C_S_AXI_DATA_WIDTH*3)];
@@ -191,6 +194,7 @@ module dflow_generator
       .rw_regs               (rw_regs),
       .compelete_store                        (compelete_store),
       .compelete_replay                       (compelete_replay),
+      .compelete_transform                    (compelete_transform),
           
       .clk                   (s_axi_aclk), 
      .reset                 (~s_axi_aresetn)
@@ -220,7 +224,7 @@ module dflow_generator
     assign sync_in_fifo_rd_en = sync_tuple_in_ready & ~sync_in_fifo_empty;
 
     always @(posedge qdr_clk)
-        if (~resetn) begin
+        if (~qdr_resetn) begin
             sync_tuple_in_vld <= 0;
         end
         else begin
@@ -271,7 +275,7 @@ module dflow_generator
     (
         // system signals
         .qdr_clk                                (qdr_clk),
-        .resetn                                 (resetn),
+        .resetn                                 (qdr_resetn),
 
         // controll signals
 	    .sw_rst                                 (sw_rst),
@@ -285,6 +289,7 @@ module dflow_generator
         // .mem_addr_high                          (16'h0fff),
         .mem_addr_low                           (mem_addr_low),
         .mem_addr_high                          (mem_addr_high),
+        .mem_high_store                         (mem_high_store),
                                                 
         // QDR Memory Interface                 
         .init_calib_complete	                (init_calib_complete),
@@ -321,8 +326,25 @@ module dflow_generator
 		.almost_full  (sync_out_fifo_prog_full),
         .empty        (sync_out_fifo_empty),
         .rst          (~resetn),
-        .wr_clk       (clk),
-        .rd_clk       (qdr_clk)
+        .wr_clk       (qdr_clk),
+        .rd_clk       (clk)
       );
 
+
+pkt_count
+#(
+)
+pkt_count_inst
+(
+    .clk                                        (clk),
+    .resetn                                     (resetn),
+
+    .tuple_out_vld                              (tuple_out_vld),
+    .tuple_out_ready                            (tuple_out_ready),
+
+    .sw_rst                                     (sw_rst),
+    .mem_high_store                             (mem_high_store),
+    .start_replay                               (start_replay),
+    .compelete_transform                        (compelete_transform)
+);
     endmodule
